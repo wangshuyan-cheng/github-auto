@@ -1,0 +1,28 @@
+name: 自动更新
+
+on:
+  schedule:
+    - cron: '0 3 * * *'      # 每天 11:00 CST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 生成每日状态
+        run: |
+          echo "# 📊 每日状态 $(date '+%Y-%m-%d %H:%M')" > status.md
+          echo "" >> status.md
+          echo "- 自动更新于 $(date '+%Y-%m-%d %H:%M CST')" >> status.md
+          echo "- 系统状态: ✅ 正常" >> status.md
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add status.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "📅 自动更新 $(date '+%Y-%m-%d')"
+          git push

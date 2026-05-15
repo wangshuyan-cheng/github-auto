@@ -1,0 +1,34 @@
+name: GitHub Models 测试
+
+on:
+  workflow_dispatch:         # 手动触发
+  schedule:
+    - cron: '30 2 * * *'    # 每天 10:30 CST 跑一次
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deps
+        run: pip install requests
+      - name: 测试 GitHub Models
+        env:
+          GH_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        run: |
+          python3 scripts/gh_models.py test
+      - name: 用 GPT-4o-mini 做每日分析
+        env:
+          GH_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        run: |
+          python3 scripts/gh_models.py chat gpt-4o-mini "今天是 $(date '+%Y-%m-%d')，用一句话总结今天的市场情绪" > analysis.md
+          echo "---" >> analysis.md
+          cat analysis.md
+      - name: 上传分析报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-analysis
+          path: analysis.md
