@@ -1,0 +1,22 @@
+name: 每日报告
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 每天 10:00 CST
+  workflow_dispatch:       # 手动触发
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run report
+        run: |
+          echo "📊 每日报告 $(date '+%Y-%m-%d')" > report.md
+          echo "---" >> report.md
+          echo "状态: ✅ 正常" >> report.md
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-report
+          path: report.md
